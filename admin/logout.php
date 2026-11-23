@@ -1,0 +1,1 @@
+<?php require __DIR__ . '/../shared/bootstrap-admin.php'; session_destroy(); redirect(ADMIN_BASE . '/login.php');
