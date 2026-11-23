@@ -15,10 +15,12 @@ $orders = $stmt->fetchAll();
 
 $order_ids = array_column($orders, 'id');
 $items_grouped = [];
+$refund_info = []; // Biến lưu thông tin hoàn tiền
 
 if (!empty($order_ids)) {
     $inQuery = implode(',', array_fill(0, count($order_ids), '?'));
-    // ĐÃ THÊM p.download_link VÀO CÂU LỆNH SQL
+
+    // 1. Lấy chi tiết sản phẩm
     $sql = "SELECT oi.*, p.name as product_name, p.product_type, p.image as product_image, p.download_link 
             FROM order_items oi 
             JOIN products p ON oi.product_id = p.id 
@@ -30,11 +32,22 @@ if (!empty($order_ids)) {
     foreach ($items as $item) {
         $items_grouped[$item['order_id']][] = $item;
     }
+
+    // 2. Lấy thông tin hoàn tiền (refunds) của các đơn hàng này
+    $sql_refund = "SELECT * FROM refunds WHERE order_id IN ($inQuery)";
+    $stmt_refund = $db->prepare($sql_refund);
+    $stmt_refund->execute($order_ids);
+    $refunds = $stmt_refund->fetchAll();
+
+    foreach ($refunds as $ref) {
+        $refund_info[$ref['order_id']] = $ref;
+    }
 }
 
-// Truyền dữ liệu sang View để hiển thị
+// Truyền dữ liệu sang View
 view('my-orders', [
     'title' => 'Lịch sử mua hàng',
     'orders' => $orders,
-    'items_grouped' => $items_grouped
+    'items_grouped' => $items_grouped,
+    'refund_info' => $refund_info // BẮT BUỘC PHẢI CÓ DÒNG NÀY
 ]);

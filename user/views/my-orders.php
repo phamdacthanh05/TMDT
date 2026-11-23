@@ -11,6 +11,12 @@
                 <p><?= $_SESSION['flash_success']; unset($_SESSION['flash_success']); ?></p>
             </div>
         <?php endif; ?>
+        
+        <?php if (isset($_SESSION['flash_error'])): ?>
+            <div class="alert alert-error" style="margin-bottom: 20px;">
+                <p><?= $_SESSION['flash_error']; unset($_SESSION['flash_error']); ?></p>
+            </div>
+        <?php endif; ?>
 
         <?php if (empty($orders)): ?>
             <div class="alert" style="background: #fff; border: 1px solid #e2e8f0; text-align: center;">
@@ -58,9 +64,39 @@
                         <div style="padding: 0 24px 24px 24px; background: #fafafa; cursor: default;">
                             <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
                                 
-                                <!-- Thanh công cụ: Tiêu đề & Nút Ẩn đơn -->
+                                <!-- Thanh công cụ: Tiêu đề & Nút Ẩn đơn / Hoàn tiền -->
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
                                     <h4 style="color: #0f172a; font-size: 1rem;">Chi tiết sản phẩm:</h4>
+                                    
+                                    <div style="display: flex; gap: 16px; align-items: center;">
+                                        
+                                        <!-- KIỂM TRA TRẠNG THÁI HOÀN TIỀN -->
+                                        <?php if (isset($refund_info[$o['id']])): ?>
+                                            <?php $ref = $refund_info[$o['id']]; ?>
+                                            
+                                            <?php if ($ref['status'] == 'pending'): ?>
+                                                <span style="color: #f59e0b; font-size: 0.9rem; font-weight: 600;">⏳ Đang chờ duyệt hoàn tiền</span>
+                                            <?php elseif ($ref['status'] == 'approved'): ?>
+                                                <span style="color: #10b981; font-size: 0.9rem; font-weight: 600;">✓ Đã hoàn tiền vào ví</span>
+                                            <?php else: ?>
+                                                <!-- BỊ TỪ CHỐI: Hiển thị lý do và Nút Chat -->
+                                                <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px 12px; border-radius: 8px;">
+                                                    <div style="color: #991b1b; font-size: 0.85rem; margin-bottom: 8px;">
+                                                        <strong>Bị từ chối:</strong> <?= e($ref['admin_note']) ?>
+                                                    </div>
+                                                    <a href="<?= APP_BASE ?>/pages/support-create.php" class="btn btn-sm" style="background: #ef4444; color: white; text-decoration: none; font-size: 0.8rem; padding: 4px 8px;">Liên hệ Admin</a>
+                                                </div>
+                                            <?php endif; ?>
+
+                                        <?php elseif ($o['status'] == 'completed'): ?>
+                                            <!-- Nếu chưa có yêu cầu và đơn thành công thì mới hiện nút -->
+                                            <a href="<?= APP_BASE ?>/pages/refund-request.php?order_id=<?= $o['id'] ?>" style="color: #f59e0b; font-size: 0.9rem; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center;">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><polyline points="3 3 3 8 8 8"></polyline></svg>
+                                                Yêu cầu hoàn tiền
+                                            </a>
+                                        <?php endif; ?>
+
+                                        <!-- NÚT XÓA KHỎI LỊCH SỬ -->
                                         <a href="javascript:void(0);" 
                                         onclick="showConfirm(
                                             'Bạn muốn ẩn đơn hàng này khỏi lịch sử? (Thông tin tài khoản vẫn được bảo lưu an toàn trên hệ thống)', 
@@ -73,6 +109,7 @@
                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                         Xóa khỏi lịch sử
                                         </a>
+                                    </div>
                                 </div>
                                 
                                 <?php if (isset($items_grouped[$o['id']])): ?>
