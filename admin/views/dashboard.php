@@ -8,7 +8,10 @@ try {
     $rev_stmt = $db->query("SELECT SUM(total_amount) FROM orders WHERE status = 'completed'");
     $total_revenue = $rev_stmt ? ($rev_stmt->fetchColumn() ?: 0) : 0;
     
-    $order_stmt = $db->query("SELECT * FROM orders ORDER BY id DESC LIMIT 5");
+    $order_stmt = $db->query("SELECT o.*, u.name as user_name, u.email as user_email 
+                          FROM orders o 
+                          JOIN users u ON o.user_id = u.id 
+                          ORDER BY o.id DESC LIMIT 5");
     $recent_orders = $order_stmt ? $order_stmt->fetchAll() : [];
 } catch (Exception $e) {
     // Dự phòng an toàn nếu bảng chưa có
